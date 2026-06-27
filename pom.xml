@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from a repository -->
 	</parent>
 	<groupId>com.kd</groupId>
-	<artifactId>expense-tracker</artifactId>
+	<artifactId>expense_tracker</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name/>
 	<description/>
