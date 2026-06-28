@@ -1,0 +1,33 @@
+package com.kd.expense_tracker.dto;
+
+import com.kd.expense_tracker.model.TransactionType;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
+public class CategoryRequest {
+
+    @NotBlank(message = "Name is required")
+    private String name;
+
+    @NotNull(message = "Type is required")
+    private TransactionType type;
+
+    public CategoryRequest() {
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public TransactionType getType() {
+        return type;
+    }
+
+    public void setType(TransactionType type) {
+        this.type = type;
+    }
+}

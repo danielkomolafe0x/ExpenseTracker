@@ -1,4 +1,6 @@
 ### Register a new user
+### (This will return 409 every time you rerun it, since testuser4 already exists in your database.
+###  That's expected and fine — it doesn't block anything below.)
 POST http://localhost:8080/api/auth/register
 Content-Type: application/json
 
@@ -7,3 +9,144 @@ Content-Type: application/json
   "email": "test4@example.com",
   "password": "password123"
 }
+
+### Create a category
+POST http://localhost:8080/api/users/1/categories
+Content-Type: application/json
+
+{
+  "name": "Groceries",
+  "type": "EXPENSE"
+}
+
+> {%
+    client.global.set("categoryId", response.body.id);
+%}
+
+### List categories for user 1
+GET http://localhost:8080/api/users/1/categories
+
+### Get one category (uses the id captured above automatically)
+GET http://localhost:8080/api/users/1/categories/{{categoryId}}
+
+### Update it
+PUT http://localhost:8080/api/users/1/categories/{{categoryId}}
+Content-Type: application/json
+
+{
+  "name": "Groceries & Household",
+  "type": "EXPENSE"
+}
+
+### Try fetching this category as a different user (should 404)
+GET http://localhost:8080/api/users/999/categories/{{categoryId}}
+
+### Create a transaction using the category we just made
+POST http://localhost:8080/api/users/1/transactions
+Content-Type: application/json
+
+{
+  "categoryId": {{categoryId}},
+  "amount": 45.50,
+  "description": "Weekly groceries",
+  "date": "2026-06-20",
+  "type": "EXPENSE"
+}
+
+> {%
+    client.global.set("transactionId", response.body.id);
+%}
+
+### List transactions for user 1
+GET http://localhost:8080/api/users/1/transactions
+
+### Get one transaction
+GET http://localhost:8080/api/users/1/transactions/{{transactionId}}
+
+### Update it
+PUT http://localhost:8080/api/users/1/transactions/{{transactionId}}
+Content-Type: application/json
+
+{
+  "categoryId": {{categoryId}},
+  "amount": 52.00,
+  "description": "Weekly groceries (updated)",
+  "date": "2026-06-20",
+  "type": "EXPENSE"
+}
+
+### Try creating a transaction with a categoryId that doesn't exist (should 404)
+POST http://localhost:8080/api/users/1/transactions
+Content-Type: application/json
+
+{
+  "categoryId": 999999,
+  "amount": 10.00,
+  "date": "2026-06-20",
+  "type": "EXPENSE"
+}
+
+### Try a negative amount (should 400)
+POST http://localhost:8080/api/users/1/transactions
+Content-Type: application/json
+
+{
+  "categoryId": {{categoryId}},
+  "amount": -10.00,
+  "date": "2026-06-20",
+  "type": "EXPENSE"
+}
+
+### Delete the transaction (must happen before we delete its category, further down)
+DELETE http://localhost:8080/api/users/1/transactions/{{transactionId}}
+
+### Create a budget tied to the category
+POST http://localhost:8080/api/users/1/budgets
+Content-Type: application/json
+
+{
+  "categoryId": {{categoryId}},
+  "limitAmount": 200.00,
+  "startDate": "2026-06-01",
+  "endDate": "2026-06-30"
+}
+
+> {%
+    client.global.set("budgetId", response.body.id);
+%}
+
+### Create an overall budget with no category
+POST http://localhost:8080/api/users/1/budgets
+Content-Type: application/json
+
+{
+  "limitAmount": 1000.00,
+  "startDate": "2026-06-01",
+  "endDate": "2026-06-30"
+}
+
+> {%
+    client.global.set("budgetId2", response.body.id);
+%}
+
+### List budgets for user 1
+GET http://localhost:8080/api/users/1/budgets
+
+### Try an invalid date range (should 400)
+POST http://localhost:8080/api/users/1/budgets
+Content-Type: application/json
+
+{
+  "limitAmount": 100.00,
+  "startDate": "2026-06-30",
+  "endDate": "2026-06-01"
+}
+
+### Clean up: delete both budgets
+DELETE http://localhost:8080/api/users/1/budgets/{{budgetId}}
+
+###
+DELETE http://localhost:8080/api/users/1/budgets/{{budgetId2}}
+
+### Now it's safe to delete the category (nothing references it anymore)
+DELETE http://localhost:8080/api/users/1/categories/{{categoryId}}
