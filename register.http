@@ -1,6 +1,4 @@
-### Register a new user
-### (This will return 409 every time you rerun it, since testuser4 already exists in your database.
-###  That's expected and fine — it doesn't block anything below.)
+### Register the primary test user
 POST http://localhost:8080/api/auth/register
 Content-Type: application/json
 
@@ -10,8 +8,45 @@ Content-Type: application/json
   "password": "password123"
 }
 
-### Create a category
-POST http://localhost:8080/api/users/1/categories
+### Log in as the primary user
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "testuser4",
+  "password": "password123"
+}
+
+> {%
+    client.global.set("authToken", response.body.token);
+%}
+
+### Register a second user, to prove cross-user protection for real
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "otheruser",
+  "email": "other@example.com",
+  "password": "password123"
+}
+
+### Log in as the second user
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "otheruser",
+  "password": "password123"
+}
+
+> {%
+    client.global.set("otherToken", response.body.token);
+%}
+
+### Create a category as the primary user
+POST http://localhost:8080/api/categories
+Authorization: Bearer {{authToken}}
 Content-Type: application/json
 
 {
@@ -23,14 +58,17 @@ Content-Type: application/json
     client.global.set("categoryId", response.body.id);
 %}
 
-### List categories for user 1
-GET http://localhost:8080/api/users/1/categories
+### List categories
+GET http://localhost:8080/api/categories
+Authorization: Bearer {{authToken}}
 
-### Get one category (uses the id captured above automatically)
-GET http://localhost:8080/api/users/1/categories/{{categoryId}}
+### Get one category
+GET http://localhost:8080/api/categories/{{categoryId}}
+Authorization: Bearer {{authToken}}
 
 ### Update it
-PUT http://localhost:8080/api/users/1/categories/{{categoryId}}
+PUT http://localhost:8080/api/categories/{{categoryId}}
+Authorization: Bearer {{authToken}}
 Content-Type: application/json
 
 {
@@ -38,11 +76,13 @@ Content-Type: application/json
   "type": "EXPENSE"
 }
 
-### Try fetching this category as a different user (should 404)
-GET http://localhost:8080/api/users/999/categories/{{categoryId}}
+### THE REAL TEST: try accessing user 1's category using user 2's token (should 404, not 200)
+GET http://localhost:8080/api/categories/{{categoryId}}
+Authorization: Bearer {{otherToken}}
 
-### Create a transaction using the category we just made
-POST http://localhost:8080/api/users/1/transactions
+### Create a transaction using the category we made
+POST http://localhost:8080/api/transactions
+Authorization: Bearer {{authToken}}
 Content-Type: application/json
 
 {
@@ -57,14 +97,17 @@ Content-Type: application/json
     client.global.set("transactionId", response.body.id);
 %}
 
-### List transactions for user 1
-GET http://localhost:8080/api/users/1/transactions
+### List transactions
+GET http://localhost:8080/api/transactions
+Authorization: Bearer {{authToken}}
 
 ### Get one transaction
-GET http://localhost:8080/api/users/1/transactions/{{transactionId}}
+GET http://localhost:8080/api/transactions/{{transactionId}}
+Authorization: Bearer {{authToken}}
 
 ### Update it
-PUT http://localhost:8080/api/users/1/transactions/{{transactionId}}
+PUT http://localhost:8080/api/transactions/{{transactionId}}
+Authorization: Bearer {{authToken}}
 Content-Type: application/json
 
 {
@@ -75,8 +118,9 @@ Content-Type: application/json
   "type": "EXPENSE"
 }
 
-### Try creating a transaction with a categoryId that doesn't exist (should 404)
-POST http://localhost:8080/api/users/1/transactions
+### Try a categoryId that doesn't exist (should 404)
+POST http://localhost:8080/api/transactions
+Authorization: Bearer {{authToken}}
 Content-Type: application/json
 
 {
@@ -87,7 +131,8 @@ Content-Type: application/json
 }
 
 ### Try a negative amount (should 400)
-POST http://localhost:8080/api/users/1/transactions
+POST http://localhost:8080/api/transactions
+Authorization: Bearer {{authToken}}
 Content-Type: application/json
 
 {
@@ -97,11 +142,13 @@ Content-Type: application/json
   "type": "EXPENSE"
 }
 
-### Delete the transaction (must happen before we delete its category, further down)
-DELETE http://localhost:8080/api/users/1/transactions/{{transactionId}}
+### Delete the transaction
+DELETE http://localhost:8080/api/transactions/{{transactionId}}
+Authorization: Bearer {{authToken}}
 
 ### Create a budget tied to the category
-POST http://localhost:8080/api/users/1/budgets
+POST http://localhost:8080/api/budgets
+Authorization: Bearer {{authToken}}
 Content-Type: application/json
 
 {
@@ -116,7 +163,8 @@ Content-Type: application/json
 %}
 
 ### Create an overall budget with no category
-POST http://localhost:8080/api/users/1/budgets
+POST http://localhost:8080/api/budgets
+Authorization: Bearer {{authToken}}
 Content-Type: application/json
 
 {
@@ -129,11 +177,13 @@ Content-Type: application/json
     client.global.set("budgetId2", response.body.id);
 %}
 
-### List budgets for user 1
-GET http://localhost:8080/api/users/1/budgets
+### List budgets
+GET http://localhost:8080/api/budgets
+Authorization: Bearer {{authToken}}
 
 ### Try an invalid date range (should 400)
-POST http://localhost:8080/api/users/1/budgets
+POST http://localhost:8080/api/budgets
+Authorization: Bearer {{authToken}}
 Content-Type: application/json
 
 {
@@ -142,15 +192,21 @@ Content-Type: application/json
   "endDate": "2026-06-01"
 }
 
-### Clean up: delete both budgets
-DELETE http://localhost:8080/api/users/1/budgets/{{budgetId}}
+### Clean up
+DELETE http://localhost:8080/api/budgets/{{budgetId}}
+Authorization: Bearer {{authToken}}
 
 ###
-DELETE http://localhost:8080/api/users/1/budgets/{{budgetId2}}
+DELETE http://localhost:8080/api/budgets/{{budgetId2}}
+Authorization: Bearer {{authToken}}
 
-### Now it's safe to delete the category (nothing references it anymore)
-DELETE http://localhost:8080/api/users/1/categories/{{categoryId}}
+###
+DELETE http://localhost:8080/api/transactions/{{transactionId}}
+Authorization: Bearer {{authToken}}
 
-### Test that real DB-backed Basic Auth now works
-GET http://localhost:8080/api/users/1/categories
-Authorization: Basic dGVzdHVzZXI0OnBhc3N3b3JkMTIz
+###
+DELETE http://localhost:8080/api/categories/{{categoryId}}
+Authorization: Bearer {{authToken}}
+
+### No token at all (should 401)
+GET http://localhost:8080/api/categories

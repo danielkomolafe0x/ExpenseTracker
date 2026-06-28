@@ -3,10 +3,12 @@ package com.kd.expense_tracker.controller;
 import com.kd.expense_tracker.dto.TransactionRequest;
 import com.kd.expense_tracker.dto.TransactionResponse;
 import com.kd.expense_tracker.model.Transaction;
+import com.kd.expense_tracker.security.UserPrincipal;
 import com.kd.expense_tracker.service.TransactionService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,7 +22,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/users/{userId}/transactions")
+@RequestMapping("/api/transactions")
 public class TransactionController {
 
     private final TransactionService transactionService;
@@ -30,10 +32,10 @@ public class TransactionController {
     }
 
     @PostMapping
-    public ResponseEntity<TransactionResponse> create(@PathVariable Long userId,
+    public ResponseEntity<TransactionResponse> create(@AuthenticationPrincipal UserPrincipal principal,
                                                       @Valid @RequestBody TransactionRequest request) {
         Transaction transaction = transactionService.createTransaction(
-                userId,
+                principal.getId(),
                 request.getCategoryId(),
                 request.getAmount(),
                 request.getDescription(),
@@ -44,8 +46,8 @@ public class TransactionController {
     }
 
     @GetMapping
-    public ResponseEntity<List<TransactionResponse>> getAll(@PathVariable Long userId) {
-        List<TransactionResponse> transactions = transactionService.getTransactionsForUser(userId)
+    public ResponseEntity<List<TransactionResponse>> getAll(@AuthenticationPrincipal UserPrincipal principal) {
+        List<TransactionResponse> transactions = transactionService.getTransactionsForUser(principal.getId())
                 .stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
@@ -53,18 +55,18 @@ public class TransactionController {
     }
 
     @GetMapping("/{transactionId}")
-    public ResponseEntity<TransactionResponse> getOne(@PathVariable Long userId,
+    public ResponseEntity<TransactionResponse> getOne(@AuthenticationPrincipal UserPrincipal principal,
                                                       @PathVariable Long transactionId) {
-        Transaction transaction = transactionService.getTransactionForUser(userId, transactionId);
+        Transaction transaction = transactionService.getTransactionForUser(principal.getId(), transactionId);
         return ResponseEntity.ok(toResponse(transaction));
     }
 
     @PutMapping("/{transactionId}")
-    public ResponseEntity<TransactionResponse> update(@PathVariable Long userId,
+    public ResponseEntity<TransactionResponse> update(@AuthenticationPrincipal UserPrincipal principal,
                                                       @PathVariable Long transactionId,
                                                       @Valid @RequestBody TransactionRequest request) {
         Transaction transaction = transactionService.updateTransaction(
-                userId,
+                principal.getId(),
                 transactionId,
                 request.getCategoryId(),
                 request.getAmount(),
@@ -76,8 +78,9 @@ public class TransactionController {
     }
 
     @DeleteMapping("/{transactionId}")
-    public ResponseEntity<Void> delete(@PathVariable Long userId, @PathVariable Long transactionId) {
-        transactionService.deleteTransaction(userId, transactionId);
+    public ResponseEntity<Void> delete(@AuthenticationPrincipal UserPrincipal principal,
+                                       @PathVariable Long transactionId) {
+        transactionService.deleteTransaction(principal.getId(), transactionId);
         return ResponseEntity.noContent().build();
     }
 

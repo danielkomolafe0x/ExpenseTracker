@@ -3,10 +3,12 @@ package com.kd.expense_tracker.controller;
 import com.kd.expense_tracker.dto.BudgetRequest;
 import com.kd.expense_tracker.dto.BudgetResponse;
 import com.kd.expense_tracker.model.Budget;
+import com.kd.expense_tracker.security.UserPrincipal;
 import com.kd.expense_tracker.service.BudgetService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,7 +22,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/users/{userId}/budgets")
+@RequestMapping("/api/budgets")
 public class BudgetController {
 
     private final BudgetService budgetService;
@@ -30,10 +32,10 @@ public class BudgetController {
     }
 
     @PostMapping
-    public ResponseEntity<BudgetResponse> create(@PathVariable Long userId,
+    public ResponseEntity<BudgetResponse> create(@AuthenticationPrincipal UserPrincipal principal,
                                                  @Valid @RequestBody BudgetRequest request) {
         Budget budget = budgetService.createBudget(
-                userId,
+                principal.getId(),
                 request.getCategoryId(),
                 request.getLimitAmount(),
                 request.getStartDate(),
@@ -43,8 +45,8 @@ public class BudgetController {
     }
 
     @GetMapping
-    public ResponseEntity<List<BudgetResponse>> getAll(@PathVariable Long userId) {
-        List<BudgetResponse> budgets = budgetService.getBudgetsForUser(userId)
+    public ResponseEntity<List<BudgetResponse>> getAll(@AuthenticationPrincipal UserPrincipal principal) {
+        List<BudgetResponse> budgets = budgetService.getBudgetsForUser(principal.getId())
                 .stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
@@ -52,18 +54,18 @@ public class BudgetController {
     }
 
     @GetMapping("/{budgetId}")
-    public ResponseEntity<BudgetResponse> getOne(@PathVariable Long userId,
+    public ResponseEntity<BudgetResponse> getOne(@AuthenticationPrincipal UserPrincipal principal,
                                                  @PathVariable Long budgetId) {
-        Budget budget = budgetService.getBudgetForUser(userId, budgetId);
+        Budget budget = budgetService.getBudgetForUser(principal.getId(), budgetId);
         return ResponseEntity.ok(toResponse(budget));
     }
 
     @PutMapping("/{budgetId}")
-    public ResponseEntity<BudgetResponse> update(@PathVariable Long userId,
+    public ResponseEntity<BudgetResponse> update(@AuthenticationPrincipal UserPrincipal principal,
                                                  @PathVariable Long budgetId,
                                                  @Valid @RequestBody BudgetRequest request) {
         Budget budget = budgetService.updateBudget(
-                userId,
+                principal.getId(),
                 budgetId,
                 request.getCategoryId(),
                 request.getLimitAmount(),
@@ -74,8 +76,9 @@ public class BudgetController {
     }
 
     @DeleteMapping("/{budgetId}")
-    public ResponseEntity<Void> delete(@PathVariable Long userId, @PathVariable Long budgetId) {
-        budgetService.deleteBudget(userId, budgetId);
+    public ResponseEntity<Void> delete(@AuthenticationPrincipal UserPrincipal principal,
+                                       @PathVariable Long budgetId) {
+        budgetService.deleteBudget(principal.getId(), budgetId);
         return ResponseEntity.noContent().build();
     }
 
