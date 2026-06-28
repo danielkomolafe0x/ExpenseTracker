@@ -94,7 +94,7 @@ src/main/java/com/kd/expense_tracker/
 ### Prerequisites
 - JDK 17 or newer
 - PostgreSQL 14+
-- Maven (IntelliJ's bundled Maven works fine — no separate install required)
+- Maven
 
 ### 1. Clone the repository
 ```bash
