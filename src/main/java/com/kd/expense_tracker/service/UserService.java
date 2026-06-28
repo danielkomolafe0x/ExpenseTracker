@@ -6,6 +6,8 @@ import com.kd.expense_tracker.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class UserService {
 
@@ -28,5 +30,9 @@ public class UserService {
         String hashedPassword = passwordEncoder.encode(rawPassword);
         User newUser = new User(username, email, hashedPassword, Role.USER);
         return userRepository.save(newUser);
+    }
+
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
     }
 }
