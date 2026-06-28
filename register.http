@@ -218,3 +218,11 @@ Authorization: Bearer {{authToken}}
 ### As otheruser (still USER) — should be 403, not 401
 GET http://localhost:8080/api/admin/users
 Authorization: Bearer {{otherToken}}
+
+### Sanity check: does otheruser's token authenticate fine on a normal endpoint?
+GET http://localhost:8080/api/categories
+Authorization: Bearer {{otherToken}}
+
+### The actual test: should now be 403, not 401
+GET http://localhost:8080/api/admin/users
+Authorization: Bearer {{otherToken}}
