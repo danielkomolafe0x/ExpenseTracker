@@ -150,3 +150,7 @@ DELETE http://localhost:8080/api/users/1/budgets/{{budgetId2}}
 
 ### Now it's safe to delete the category (nothing references it anymore)
 DELETE http://localhost:8080/api/users/1/categories/{{categoryId}}
+
+### Test that real DB-backed Basic Auth now works
+GET http://localhost:8080/api/users/1/categories
+Authorization: Basic dGVzdHVzZXI0OnBhc3N3b3JkMTIz
