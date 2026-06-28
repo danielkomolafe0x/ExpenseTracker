@@ -10,10 +10,10 @@ A RESTful API for tracking personal income, expenses, and budgets, built with Ja
 - User registration with input validation and secure password hashing (BCrypt)
 - Relational data model for users, categories, transactions, and budgets
 - Layered architecture: Controller → Service → Repository → Database
-
-### Planned
 - Full CRUD for categories, transactions, and budgets
 - JWT-based authentication and role-based access control (USER / ADMIN)
+
+### Planned
 - Spending summary endpoints by category and date range
 - API documentation via Swagger / OpenAPI
 - Unit and integration tests with JUnit and Mockito
