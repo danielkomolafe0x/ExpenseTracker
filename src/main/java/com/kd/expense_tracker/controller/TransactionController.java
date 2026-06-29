@@ -5,6 +5,7 @@ import com.kd.expense_tracker.dto.TransactionResponse;
 import com.kd.expense_tracker.model.Transaction;
 import com.kd.expense_tracker.security.UserPrincipal;
 import com.kd.expense_tracker.service.TransactionService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/transactions")
+@Tag(name = "Transactions", description = "CRUD operations for income and expense transactions")
 public class TransactionController {
 
     private final TransactionService transactionService;

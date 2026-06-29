@@ -5,6 +5,7 @@ import com.kd.expense_tracker.dto.BudgetResponse;
 import com.kd.expense_tracker.model.Budget;
 import com.kd.expense_tracker.security.UserPrincipal;
 import com.kd.expense_tracker.service.BudgetService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/budgets")
+@Tag(name = "Budgets", description = "CRUD operations for spending budgets")
 public class BudgetController {
 
     private final BudgetService budgetService;

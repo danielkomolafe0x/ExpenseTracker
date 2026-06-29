@@ -5,6 +5,7 @@ import com.kd.expense_tracker.dto.CategoryResponse;
 import com.kd.expense_tracker.model.Category;
 import com.kd.expense_tracker.security.UserPrincipal;
 import com.kd.expense_tracker.service.CategoryService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/categories")
+@Tag(name = "Categories", description = "CRUD operations for expense/income categories")
 public class CategoryController {
 
     private final CategoryService categoryService;

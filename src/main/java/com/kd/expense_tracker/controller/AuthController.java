@@ -8,6 +8,7 @@ import com.kd.expense_tracker.model.User;
 import com.kd.expense_tracker.security.JwtService;
 import com.kd.expense_tracker.security.UserPrincipal;
 import com.kd.expense_tracker.service.UserService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/auth")
+@Tag(name = "Authentication", description = "Registration and login")
 public class AuthController {
 
     private final UserService userService;
