@@ -226,3 +226,103 @@ Authorization: Bearer {{otherToken}}
 ### The actual test: should now be 403, not 401
 GET http://localhost:8080/api/admin/users
 Authorization: Bearer {{otherToken}}
+
+### Log in to get a fresh token
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "testuser4",
+  "password": "password123"
+}
+
+> {%
+    client.global.set("authToken", response.body.token);
+%}
+
+### Create an EXPENSE category
+POST http://localhost:8080/api/categories
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "name": "Groceries",
+  "type": "EXPENSE"
+}
+
+> {%
+    client.global.set("expenseCategoryId", response.body.id);
+%}
+
+### Create an INCOME category
+POST http://localhost:8080/api/categories
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "name": "Salary",
+  "type": "INCOME"
+}
+
+> {%
+    client.global.set("incomeCategoryId", response.body.id);
+%}
+
+### Add an expense transaction
+POST http://localhost:8080/api/transactions
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "categoryId": {{expenseCategoryId}},
+  "amount": 45.50,
+  "description": "Weekly groceries",
+  "date": "2026-06-10",
+  "type": "EXPENSE"
+}
+
+### Add another expense transaction, same category
+POST http://localhost:8080/api/transactions
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "categoryId": {{expenseCategoryId}},
+  "amount": 30.00,
+  "description": "More groceries",
+  "date": "2026-06-15",
+  "type": "EXPENSE"
+}
+
+### Add an income transaction
+POST http://localhost:8080/api/transactions
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "categoryId": {{incomeCategoryId}},
+  "amount": 2000.00,
+  "description": "Paycheck",
+  "date": "2026-06-05",
+  "type": "INCOME"
+}
+
+### Spending by category for June 2026
+GET http://localhost:8080/api/reports/by-category?startDate=2026-06-01&endDate=2026-06-30
+Authorization: Bearer {{authToken}}
+
+### Overall income/expense summary for June 2026
+GET http://localhost:8080/api/reports/summary?startDate=2026-06-01&endDate=2026-06-30
+Authorization: Bearer {{authToken}}
+
+### Try a mismatched type (EXPENSE category, INCOME transaction) - should now 400
+POST http://localhost:8080/api/transactions
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "categoryId": {{expenseCategoryId}},
+  "amount": 20.00,
+  "date": "2026-06-15",
+  "type": "INCOME"
+}

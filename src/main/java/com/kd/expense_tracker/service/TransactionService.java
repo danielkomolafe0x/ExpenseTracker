@@ -1,5 +1,6 @@
 package com.kd.expense_tracker.service;
 
+import com.kd.expense_tracker.exception.InvalidRequestException;
 import com.kd.expense_tracker.exception.ResourceNotFoundException;
 import com.kd.expense_tracker.model.Category;
 import com.kd.expense_tracker.model.Transaction;
@@ -35,6 +36,7 @@ public class TransactionService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Category category = getOwnedCategory(userId, categoryId);
+        validateTypeMatchesCategory(type, category);
 
         Transaction transaction = new Transaction(amount, description, date, type, category, user);
         return transactionRepository.save(transaction);
@@ -59,6 +61,7 @@ public class TransactionService {
                                          String description, LocalDate date, TransactionType type) {
         Transaction transaction = getTransactionForUser(userId, transactionId);
         Category category = getOwnedCategory(userId, categoryId);
+        validateTypeMatchesCategory(type, category);
 
         transaction.setAmount(amount);
         transaction.setDescription(description);
@@ -72,6 +75,14 @@ public class TransactionService {
     public void deleteTransaction(Long userId, Long transactionId) {
         Transaction transaction = getTransactionForUser(userId, transactionId);
         transactionRepository.delete(transaction);
+    }
+
+    private void validateTypeMatchesCategory(TransactionType type, Category category) {
+        if (type != category.getType()) {
+            throw new InvalidRequestException(
+                    "Transaction type must match its category's type (" + category.getType() + ")"
+            );
+        }
     }
 
     private Category getOwnedCategory(Long userId, Long categoryId) {
