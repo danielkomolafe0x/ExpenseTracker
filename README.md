@@ -1,36 +1,34 @@
 # Expense Tracker API
 
-A RESTful API for tracking personal income, expenses, and budgets, built with Java and Spring Boot. This is a capstone project built incrementally to practice production-style backend architecture: layered design, relational data modeling, authentication, and testing.
-
-> **Status:** Actively in development. This README reflects what's implemented so far and will be updated as features are completed.
+A RESTful API for tracking personal income, expenses, and budgets. Built as a capstone project to practice
+production-style backend architecture: layered design, relational data modeling, JWT authentication, and automated
+testing.
 
 ## Features
 
-### Implemented
-- User registration with input validation and secure password hashing (BCrypt)
-- Relational data model for users, categories, transactions, and budgets
-- Layered architecture: Controller → Service → Repository → Database
-- Full CRUD for categories, transactions, and budgets
-- JWT-based authentication and role-based access control (USER / ADMIN)
-
-### Planned
-- Spending summary endpoints by category and date range
-- API documentation via Swagger / OpenAPI
-- Unit and integration tests with JUnit and Mockito
+- User registration and login with **BCrypt password hashing**
+- **Stateless JWT authentication** — no server-side sessions
+- **Role-based access control** (USER / ADMIN) via Spring Security
+- Full **CRUD** for categories, transactions, and budgets
+- **Ownership enforcement** — users can only access their own data
+- **Spending reports** summarized by category and date range
+- Input validation with meaningful error responses
+- **Swagger / OpenAPI** interactive documentation
+- **JUnit 5 + Mockito** unit and integration tests for service and controller layers
 
 ## Tech Stack
 
-| Layer | Technology                     |
-|---|--------------------------------|
-| Language | Java 25                         |
-| Framework | Spring Boot                    |
-| Persistence | Spring Data JPA, Hibernate     |
-| Database | PostgreSQL                     |
-| Build Tool | Maven                          |
-| Validation | Jakarta Bean Validation        |
-| Auth (planned) | Spring Security, JWT           |
-| Testing (planned) | JUnit 5, Mockito               |
-| API Docs (planned) | springdoc-openapi (Swagger UI) |
+| Layer          | Technology                     |
+|----------------|--------------------------------|
+| Language       | Java                           |
+| Framework      | Spring Boot                    |
+| Persistence    | Spring Data JPA, Hibernate     |
+| Database       | PostgreSQL                     |
+| Build Tool     | Maven                          |
+| Authentication | Spring Security, JWT (jjwt)    |
+| Validation     | Jakarta Bean Validation        |
+| API Docs       | springdoc-openapi (Swagger UI) |
+| Testing        | JUnit 5, Mockito               |
 
 ## Data Model
 
@@ -73,74 +71,144 @@ erDiagram
   }
 ```
 
-- Each `User` owns their own categories, transactions, and budgets.
-- `Category` links to both `Transaction` and `Budget`, enabling spending summaries by category.
-- `Budget.category_id` is nullable, allowing either category-specific or overall budgets.
+- Each user owns their own categories, transactions, and budgets — isolated at every query.
+- `Budget.category_id` is nullable, supporting both category-specific and overall budgets.
+- Transaction type must match its category type, enforced at the service layer.
 
 ## Project Structure
 
 ```
 src/main/java/com/kd/expense_tracker/
-├── model/        # JPA entities
-├── repository/   # Spring Data JPA repositories
-├── service/      # Business logic
+├── config/       # Bean configuration (PasswordEncoder, OpenAPI)
 ├── controller/   # REST endpoints
 ├── dto/          # Request/response objects
-└── config/       # Bean configuration (e.g. PasswordEncoder)
+├── exception/    # Custom exceptions
+├── model/        # JPA entities
+├── repository/   # Spring Data JPA repositories
+├── security/     # JWT filter, UserPrincipal, SecurityConfig
+└── service/      # Business logic
+
+src/test/java/com/kd/expense_tracker/
+├── controller/   # Controller integration tests (MockMvc)
+└── service/      # Service unit tests (Mockito)
 ```
+
+## API Endpoints
+
+### Authentication (public)
+
+| Method | Endpoint             | Description           |
+|--------|----------------------|-----------------------|
+| POST   | `/api/auth/register` | Register a new user   |
+| POST   | `/api/auth/login`    | Log in, receive a JWT |
+
+### Categories (requires JWT)
+
+| Method | Endpoint               | Description          |
+|--------|------------------------|----------------------|
+| POST   | `/api/categories`      | Create a category    |
+| GET    | `/api/categories`      | List your categories |
+| GET    | `/api/categories/{id}` | Get one category     |
+| PUT    | `/api/categories/{id}` | Update a category    |
+| DELETE | `/api/categories/{id}` | Delete a category    |
+
+### Transactions (requires JWT)
+
+| Method | Endpoint                 | Description            |
+|--------|--------------------------|------------------------|
+| POST   | `/api/transactions`      | Create a transaction   |
+| GET    | `/api/transactions`      | List your transactions |
+| GET    | `/api/transactions/{id}` | Get one transaction    |
+| PUT    | `/api/transactions/{id}` | Update a transaction   |
+| DELETE | `/api/transactions/{id}` | Delete a transaction   |
+
+### Budgets (requires JWT)
+
+| Method | Endpoint            | Description       |
+|--------|---------------------|-------------------|
+| POST   | `/api/budgets`      | Create a budget   |
+| GET    | `/api/budgets`      | List your budgets |
+| GET    | `/api/budgets/{id}` | Get one budget    |
+| PUT    | `/api/budgets/{id}` | Update a budget   |
+| DELETE | `/api/budgets/{id}` | Delete a budget   |
+
+### Reports (requires JWT)
+
+| Method | Endpoint                   | Description                               |
+|--------|----------------------------|-------------------------------------------|
+| GET    | `/api/reports/by-category` | Expense totals grouped by category        |
+| GET    | `/api/reports/summary`     | Income, expense, and net for a date range |
+
+### Admin (requires ADMIN role)
+
+| Method | Endpoint           | Description               |
+|--------|--------------------|---------------------------|
+| GET    | `/api/admin/users` | List all registered users |
+
+Full interactive documentation available at `/swagger-ui.html` when the app is running.
 
 ## Getting Started
 
 ### Prerequisites
+
 - JDK 17 or newer
 - PostgreSQL 14+
-- Maven
+- Maven (IntelliJ's bundled Maven works — no separate installation required)
 
 ### 1. Clone the repository
+
 ```bash
 git clone <your-repo-url>
 cd expense-tracker
 ```
 
 ### 2. Create the database
-In PostgreSQL (via `psql` or pgAdmin's Query Tool):
+
+In PostgreSQL (via pgAdmin or psql):
+
 ```sql
-CREATE DATABASE expense_tracker;
-CREATE USER expense_app WITH ENCRYPTED PASSWORD 'your_password_here';
-GRANT ALL PRIVILEGES ON DATABASE expense_tracker TO expense_app;
-```
-Then, connected to the `expense_tracker` database specifically:
-```sql
-GRANT ALL ON SCHEMA public TO expense_app;
+CREATE
+DATABASE expense_tracker;
+CREATE
+USER expense_app WITH ENCRYPTED PASSWORD 'your_password';
+GRANT ALL PRIVILEGES ON DATABASE
+expense_tracker TO expense_app;
 ```
 
-### 3. Configure credentials
-`application.properties` reads the database password from an environment variable rather than storing it in the file (see [Security Notes](#security-notes)). Set `DB_PASSWORD` in your IDE's run configuration or system environment before running the app.
+Then, connected to `expense_tracker` specifically:
+
+```sql
+GRANT
+ALL
+ON SCHEMA public TO expense_app;
+```
+
+### 3. Set environment variables
+
+The app reads credentials from environment variables — never hardcoded in files.
+
+| Variable      | Purpose                                                |
+|---------------|--------------------------------------------------------|
+| `DB_PASSWORD` | PostgreSQL password for `expense_app`                  |
+| `JWT_SECRET`  | Secret key for signing JWTs (use a long random string) |
+
+Set these in your OS environment or in IntelliJ's Run Configuration → Environment Variables.
 
 ### 4. Run the application
+
 In IntelliJ: right-click `ExpenseTrackerApplication.java` → **Run**.
 
-Or from the command line:
-```bash
-./mvnw spring-boot:run
-```
-
-The API will be available at `http://localhost:8080`.
-
-## API Endpoints
-
-| Method | Endpoint | Description | Auth Required |
-|---|---|---|---|
-| POST | `/api/auth/register` | Register a new user | No |
-
-More endpoints are added as development progresses. Once Swagger is integrated, full interactive documentation will be available at `/swagger-ui.html`.
+The API starts at `http://localhost:8080`.
+Swagger UI is at `http://localhost:8080/swagger-ui.html`.
 
 ## Security Notes
 
-- Passwords are hashed with BCrypt before storage — plaintext passwords are never persisted.
-- Database credentials are injected via environment variables, not hardcoded in version control.
-- JWT-based authentication and role-based access control are planned for an upcoming phase.
+- Passwords are hashed with **BCrypt** — plaintext passwords are never stored.
+- JWTs are signed with HMAC-SHA512. Expiry is 1 hour by default.
+- All credentials are injected via environment variables, never committed to version control.
+- Users can only access resources they own — cross-user access returns `404` (not `403`) to avoid leaking existence
+  information.
 
 ## Author
 
-Daniel Komolafe — built as a capstone project to practice backend engineering with Spring Boot.
+Built by Daniel Komolafe as a capstone project.
