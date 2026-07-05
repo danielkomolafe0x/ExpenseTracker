@@ -20,6 +20,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Objects;
+
 @RestController
 @RequestMapping("/api/auth")
 @Tag(name = "Authentication", description = "Registration and login")
@@ -62,7 +64,8 @@ public class AuthController {
         );
 
         UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
-        String role = principal.getAuthorities().iterator().next().getAuthority().replace("ROLE_", "");
+        assert principal != null;
+        String role = Objects.requireNonNull(principal.getAuthorities().iterator().next().getAuthority()).replace("ROLE_", "");
 
         String token = jwtService.generateToken(principal.getId(), principal.getUsername(), role);
 
