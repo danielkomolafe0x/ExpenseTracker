@@ -18,6 +18,9 @@ Content-Type: application/json
 }
 
 > {%
+    response.body.token = function () {
+
+    };
     client.global.set("authToken", response.body.token);
 %}
 
@@ -41,6 +44,9 @@ Content-Type: application/json
 }
 
 > {%
+    response.body.token = function () {
+
+    };
     client.global.set("otherToken", response.body.token);
 %}
 
@@ -237,6 +243,9 @@ Content-Type: application/json
 }
 
 > {%
+    response.body.token = function () {
+
+    };
     client.global.set("authToken", response.body.token);
 %}
 

@@ -36,14 +36,13 @@ class CategoryServiceTest {
     private CategoryService categoryService;
 
     private User owner;
-    private User otherUser;
     private Category category;
 
     private void setUpOwnedCategory() {
         owner = new User("alice", "alice@example.com", "hashed", Role.USER);
         setId(owner, 1L);
 
-        otherUser = new User("bob", "bob@example.com", "hashed", Role.USER);
+        User otherUser = new User("bob", "bob@example.com", "hashed", Role.USER);
         setId(otherUser, 2L);
 
         category = new Category("Groceries", TransactionType.EXPENSE, owner);
@@ -105,7 +104,7 @@ class CategoryServiceTest {
         setUpOwnedCategory();
         when(categoryRepository.findById(10L)).thenReturn(Optional.of(category));
 
-        // category belongs to user 1 (owner); requesting as user 2 (otherUser) must fail
+        // this category belongs to user 1 (owner); requesting as user 2 (otherUser) must fail
         assertThrows(ResourceNotFoundException.class, () ->
                 categoryService.getCategoryForUser(2L, 10L)
         );
@@ -129,6 +128,6 @@ class CategoryServiceTest {
         List<Category> result = categoryService.getCategoriesForUser(1L);
 
         assertEquals(1, result.size());
-        assertEquals(category, result.get(0));
+        assertEquals(category, result.getFirst());
     }
 }
