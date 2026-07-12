@@ -34,7 +34,7 @@ class CategoryControllerTest {
     private CategoryController categoryController;
 
     private UserPrincipal testPrincipal() {
-        User user = new User("alice", "alice@example.com", "hashed", Role.USER);
+        @SuppressWarnings("SpellCheckingInspection") User user = new User("alice", "alice@example.com", "hashed", Role.USER);
         user.setId(1L);
         return new UserPrincipal(user);
     }

@@ -154,7 +154,7 @@ src/test/java/com/kd/expense_tracker/
 | GET    | `/api/reports/by-category` | Expense totals grouped by category        |
 | GET    | `/api/reports/summary`     | Income, expense, and net for a date range |
 
-### Admin (requires ADMIN role)
+### Admin (requires an ADMIN role)
 
 | Method | Endpoint           | Description               |
 |--------|--------------------|---------------------------|
@@ -192,6 +192,8 @@ GRANT ALL PRIVILEGES ON DATABASE expense_tracker TO expense_app;
 Then, connected to `expense_tracker` specifically:
 
 ```sql
+-- noinspection SqlResolveForFile
+
 GRANT ALL ON SCHEMA public TO expense_app;
 ```
 

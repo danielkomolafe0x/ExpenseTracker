@@ -32,15 +32,17 @@ class UserServiceTest {
     @Test
     void registerUser_savesNewUserWithHashedPassword() {
         // Arrange
+        //noinspection SpellCheckingInspection
         when(userRepository.existsByUsername("alice")).thenReturn(false);
         when(userRepository.existsByEmail("alice@example.com")).thenReturn(false);
         when(passwordEncoder.encode("plaintext123")).thenReturn("hashed_value");
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // Act
-        User result = userService.registerUser("alice", "alice@example.com", "plaintext123");
+        @SuppressWarnings("SpellCheckingInspection") User result = userService.registerUser("alice", "alice@example.com", "plaintext123");
 
         // Assert
+        //noinspection SpellCheckingInspection
         assertEquals("alice", result.getUsername());
         assertEquals("alice@example.com", result.getEmail());
         assertEquals("hashed_value", result.getPassword());
@@ -51,10 +53,11 @@ class UserServiceTest {
     @Test
     void registerUser_throwsWhenUsernameAlreadyExists() {
         // Arrange
+        //noinspection SpellCheckingInspection
         when(userRepository.existsByUsername("alice")).thenReturn(true);
 
         // Act + Assert
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+        @SuppressWarnings("SpellCheckingInspection") IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
                 userService.registerUser("alice", "alice@example.com", "plaintext123")
         );
         assertEquals("Username already taken", exception.getMessage());
@@ -64,11 +67,12 @@ class UserServiceTest {
     @Test
     void registerUser_throwsWhenEmailAlreadyExists() {
         // Arrange
+        //noinspection SpellCheckingInspection
         when(userRepository.existsByUsername("alice")).thenReturn(false);
         when(userRepository.existsByEmail("alice@example.com")).thenReturn(true);
 
         // Act + Assert
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+        @SuppressWarnings("SpellCheckingInspection") IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
                 userService.registerUser("alice", "alice@example.com", "plaintext123")
         );
         assertEquals("Email already in use", exception.getMessage());

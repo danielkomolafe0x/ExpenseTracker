@@ -39,6 +39,7 @@ class CategoryServiceTest {
     private Category category;
 
     private void setUpOwnedCategory() {
+        //noinspection SpellCheckingInspection
         owner = new User("alice", "alice@example.com", "hashed", Role.USER);
         setId(owner, 1L);
 
