@@ -12,7 +12,7 @@ testing.
 - **Interactive docs (Swagger UI):** https://expensetracker-1jlr.onrender.com/swagger-ui.html
 
 > Hosted on a free tier that sleeps after 15 minutes of inactivity. The first request after a period of idleness can
-> take 30–60 seconds to respond while the server wakes up — subsequent requests are fast.
+> take 30–60 seconds to respond while the server wakes up — later requests are fast.
 
 ## Features
 
@@ -205,7 +205,7 @@ GRANT ALL ON SCHEMA public TO expense_app;
 ./mvnw test
 ```
 
-16 tests covering service-layer business logic (Mockito) and controller-layer HTTP behavior (MockMvc) — including
+Sixteen tests covering service-layer business logic (Mockito) and controller-layer HTTP behavior (MockMvc) — including
 authentication, cross-user ownership enforcement, and input validation. These run automatically on every push via the
 GitHub Actions workflow above.
 
