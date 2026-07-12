@@ -33,3 +33,5 @@ build/
 .vscode/
 
 .env
+register.http
+http-client.env.json
