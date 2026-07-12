@@ -4,6 +4,16 @@ A RESTful API for tracking personal income, expenses, and budgets. Built as a ca
 production-style backend architecture: layered design, relational data modeling, JWT authentication, and automated
 testing.
 
+[![CI](https://github.com/danielkomolafe0x/ExpenseTracker/actions/workflows/ci.yml/badge.svg)](https://github.com/danielkomolafe0x/ExpenseTracker/actions/workflows/ci.yml)
+
+## Live Demo
+
+- **API base URL:** https://expensetracker-1jlr.onrender.com
+- **Interactive docs (Swagger UI):** https://expensetracker-1jlr.onrender.com/swagger-ui.html
+
+> Hosted on a free tier that sleeps after 15 minutes of inactivity. The first request after a period of idleness can
+> take 30–60 seconds to respond while the server wakes up — subsequent requests are fast.
+
 ## Features
 
 - User registration and login with **BCrypt password hashing**
@@ -15,20 +25,25 @@ testing.
 - Input validation with meaningful error responses
 - **Swagger / OpenAPI** interactive documentation
 - **JUnit 5 + Mockito** unit and integration tests for service and controller layers
+- **Dockerized** with multi-stage builds, orchestrated via Docker Compose
+- **CI pipeline** via GitHub Actions — tests run automatically on every push
 
 ## Tech Stack
 
-| Layer          | Technology                     |
-|----------------|--------------------------------|
-| Language       | Java                           |
-| Framework      | Spring Boot                    |
-| Persistence    | Spring Data JPA, Hibernate     |
-| Database       | PostgreSQL                     |
-| Build Tool     | Maven                          |
-| Authentication | Spring Security, JWT (jjwt)    |
-| Validation     | Jakarta Bean Validation        |
-| API Docs       | springdoc-openapi (Swagger UI) |
-| Testing        | JUnit 5, Mockito               |
+| Layer            | Technology                     |
+|------------------|--------------------------------|
+| Language         | Java                           |
+| Framework        | Spring Boot                    |
+| Persistence      | Spring Data JPA, Hibernate     |
+| Database         | PostgreSQL                     |
+| Build Tool       | Maven                          |
+| Authentication   | Spring Security, JWT (jjwt)    |
+| Validation       | Jakarta Bean Validation        |
+| API Docs         | springdoc-openapi (Swagger UI) |
+| Testing          | JUnit 5, Mockito               |
+| Containerization | Docker, Docker Compose         |
+| CI/CD            | GitHub Actions                 |
+| Deployment       | Render                         |
 
 ## Data Model
 
@@ -145,61 +160,54 @@ src/test/java/com/kd/expense_tracker/
 |--------|--------------------|---------------------------|
 | GET    | `/api/admin/users` | List all registered users |
 
-Full interactive documentation available at `/swagger-ui.html` when the app is running.
+Full interactive documentation is available at `/swagger-ui.html`, both live and locally.
 
-## Getting Started
+## Running Locally
 
-### Prerequisites
+### Option A — Docker (recommended, no local Postgres install needed)
 
-- JDK 17 or newer
-- PostgreSQL 14+
-- Maven (IntelliJ's bundled Maven works — no separate installation required)
-
-### 1. Clone the repository
+**Prerequisites:** Docker Desktop
 
 ```bash
-git clone <your-repo-url>
-cd expense-tracker
+git clone https://github.com/danielkomolafe0x/ExpenseTracker.git
+cd ExpenseTracker
+cp .env.example .env   # fill in DB_PASSWORD and JWT_SECRET
+docker-compose up --build
 ```
 
-### 2. Create the database
+The API starts at `http://localhost:8080`, with Swagger UI at `http://localhost:8080/swagger-ui.html`.
 
-In PostgreSQL (via pgAdmin or psql):
+### Option B — Local JDK + PostgreSQL
+
+**Prerequisites:** JDK 25, PostgreSQL 14+, Maven (IntelliJ's bundled Maven works fine)
+
+1. Create the database:
 
 ```sql
-CREATE
-DATABASE expense_tracker;
-CREATE
-USER expense_app WITH ENCRYPTED PASSWORD 'your_password';
-GRANT ALL PRIVILEGES ON DATABASE
-expense_tracker TO expense_app;
+CREATE DATABASE expense_tracker;
+CREATE USER expense_app WITH ENCRYPTED PASSWORD 'your_password';
+GRANT ALL PRIVILEGES ON DATABASE expense_tracker TO expense_app;
 ```
 
 Then, connected to `expense_tracker` specifically:
 
 ```sql
-GRANT
-ALL
-ON SCHEMA public TO expense_app;
+GRANT ALL ON SCHEMA public TO expense_app;
 ```
 
-### 3. Set environment variables
+1. Set environment variables `DB_PASSWORD` and `JWT_SECRET` (see `.env.example` for the expected format)
 
-The app reads credentials from environment variables — never hardcoded in files.
+2. Run `ExpenseTrackerApplication.java` from your IDE, or `./mvnw spring-boot:run`
 
-| Variable      | Purpose                                                |
-|---------------|--------------------------------------------------------|
-| `DB_PASSWORD` | PostgreSQL password for `expense_app`                  |
-| `JWT_SECRET`  | Secret key for signing JWTs (use a long random string) |
+## Testing
 
-Set these in your OS environment or in IntelliJ's Run Configuration → Environment Variables.
+```bash
+./mvnw test
+```
 
-### 4. Run the application
-
-In IntelliJ: right-click `ExpenseTrackerApplication.java` → **Run**.
-
-The API starts at `http://localhost:8080`.
-Swagger UI is at `http://localhost:8080/swagger-ui.html`.
+16 tests covering service-layer business logic (Mockito) and controller-layer HTTP behavior (MockMvc) — including
+authentication, cross-user ownership enforcement, and input validation. These run automatically on every push via the
+GitHub Actions workflow above.
 
 ## Security Notes
 
@@ -208,6 +216,7 @@ Swagger UI is at `http://localhost:8080/swagger-ui.html`.
 - All credentials are injected via environment variables, never committed to version control.
 - Users can only access resources they own — cross-user access returns `404` (not `403`) to avoid leaking existence
   information.
+- Production and local development use separate secrets.
 
 ## Author
 
